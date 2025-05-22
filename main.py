@@ -4,14 +4,16 @@ from models import Todo
 
 app = FastAPI()
 
-# Allow frontend access
+# Allow frontend to access backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # You can restrict to "https://your-frontend.vercel.app"
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# In-memory task list
 todos = []
 
 @app.get("/todos/")
@@ -27,5 +29,13 @@ def create_todo(todo: Todo):
 def delete_todo(todo_id: int):
     global todos
     todos = [todo for todo in todos if todo.id != todo_id]
-    return {"message": "Deleted"}
+    return {"message": "Todo deleted"}
+
+@app.put("/todos/{todo_id}")
+def update_todo(todo_id: int, updated_todo: Todo):
+    for i, todo in enumerate(todos):
+        if todo.id == todo_id:
+            todos[i] = updated_todo
+            return {"message": "Todo updated", "todo": updated_todo}
+    return {"error": "Todo not found"}
 
